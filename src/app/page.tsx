@@ -3,6 +3,9 @@ import { getServerAuthSession } from "~/server/auth";
 import { api } from "~/trpc/server";
 
 export default async function Home() {
+  /* This is a sample backend call from a trpc api endpoint that
+  /* loads a message from the post.ts file in the server/api/routers/post.ts file
+  This can be used for other items such as database CRUD operations and maybe authentication? not sure */ 
   const hello = await api.post.hello.query({ text: "from tRPC" });
   const session = await getServerAuthSession();
 
