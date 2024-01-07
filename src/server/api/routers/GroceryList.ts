@@ -2,6 +2,9 @@ import { initTRPC } from '@trpc/server';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 
+// Define GroceryList so that it can be used as a zod schema 
+// and as a return type for the procedure so that I don't get `any` 
+// errors as the return type for the procedure
 type GroceryList = {
   id: string;
   name: string;
@@ -20,6 +23,34 @@ const t = initTRPC.create();
 export const publicProcedure = t.procedure;
 
 export const groceryRouter = t.router({
+
+  // Create a grocery list for a user (should be used when they log in for the first time)
+  createGroceryList: t.procedure
+    .input(
+      z.object({
+        userId: z.string(),
+        // Allows the user to name their grocery list
+        name: z.string(),
+      }),
+    )
+    .output(
+      z.object({
+        id: z.string(),
+        userId: z.string(),
+        name: z.string(),
+      }),
+    )
+    .query(async ({ input }): Promise<GroceryList> => {
+      const groceryList = await prisma.groceryList.create({
+        data: {
+          name: input.name,
+          userId: input.userId,
+        },
+      });
+
+      return groceryList as GroceryList;
+    }),
+
   getGroceryList: t.procedure
     .input(
       z.object({
@@ -48,91 +79,6 @@ export const groceryRouter = t.router({
 
       return groceryList as GroceryList;
     }),
+
+
 });
-
-
-
-
-
-// export const groceryRouter = router({
-//     // Queries are the best place to fetch data
-//     // These two backend procedures are used to show an example of what the procedures are supposed
-//     // to look like. They are not used in the actual application
-//     hello: publicProcedure.query(() => {
-//         return {
-//             message: 'hello world!',
-//         };
-//     }),
-    
-//     // This procedure is used to call the database and get the grocery list for a user 
-//     // to display on the front-end
-//     getGroceryList: publicProcedure
-//       .input(
-//         z.object({
-//           userId: z.string(),
-//         }),
-//       )
-//       .query(async (opts): Promise<GroceryList | null> => {
-//         const groceryList: GroceryList | null = await prisma.groceryList.findUnique({
-//           where: { userId: opts.input.userId },
-//           include: { items: true },
-//         });
-//         if (groceryList === null) {
-//           throw new Error('Grocery list not found');
-//         }
-//         return groceryList;
-//       }),
-
-
-//     addToGroceryList: publicProcedure
-//         .input(
-//             z.object({
-//                     userId: z.string(),
-//                     item: z.object({
-//                     name: z.string(),
-//                     quantity: z.number().optional(),
-//                     groceryListId: z.string(),
-//                 }),
-//             })
-//         )
-//         .mutation(async ({ input }: { input: { userId: string, item: { name: string, quantity?: number, groceryListId: string } } }) => {
-
-//             // Create the new GroceryItem
-//             const newItem = await prisma.groceryItem.create({
-//                 data: {
-//                     ...input.item,
-//                     groceryListId: input.item.groceryListId,
-//                 },
-//             });
-
-//             return newItem;
-//         }),
-
-//     // addToInStock: publicProcedure
-//     //     .input(
-//     //         z.object({
-//     //             userId: z.string(),
-//     //             item: z.object({
-//     //                 name: z.string(),
-//     //                 quantity: z.number(),
-//     //                 unit: z.string(),
-//     //                 price: z.number(),
-//     //                 expiryDate: z.date().optional(),
-//     //                 inStockId: z.string().optional(),
-//     //             }),
-//     //         })
-//     //     )
-//     //     .mutation(async ({ input }: { input: { userId: string, item: { name: string, quantity: number, unit: string, price: number, expiryDate?: Date, inStockId?: string } } }) => {
-//     //         const newItem = await prisma.groceryItem.create({
-//     //             data: {
-//     //                 ...input.item,
-//     //                 inStock: {
-//     //                     connect: { id: input.item.inStockId },
-//     //                 },
-//     //             },
-//     //         });
-//     //         return newItem;
-//     //     }),
-
-// });
-
