@@ -15,36 +15,44 @@ model User {
   id          String       @id @default(cuid())
   email       String       @unique
   groceryList GroceryList?
-  inStock     InStock?
+  inStock     InventoryList?
 }
 
 model GroceryList {
-  id      String   @id @default(cuid())
+  id      String       @id @default(cuid())
   name    String
-  user    User     @relation(fields: [userId], references: [id])
-  userId  String @unique
+  user    User         @relation(fields: [userId], references: [id])
+  userId  String       @unique
   items   GroceryItem[]
 }
 
-model InStock {
-  id      String   @id @default(cuid())
+model InventoryList {
+  id      String         @id @default(cuid())
   name    String
-  user    User     @relation(fields: [userId], references: [id])
-  userId  String @unique
-  items   GroceryItem[]
+  user    User           @relation(fields: [userId], references: [id])
+  userId  String         @unique
+  items   InventoryItem[]
 }
 
 model GroceryItem {
-  id          String       @id @default(cuid())
-  name        String
-  quantity    Int
-  unit        String
-  price       Float
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  expiryDate  DateTime?
-  groceryList GroceryList? @relation(fields: [groceryListId], references: [id])
-  groceryListId String?
-  inStock     InStock?     @relation(fields: [inStockId], references: [id])
-  inStockId   String?
+  id            String       @id @default(cuid())
+  name          String
+  quantity      Int?
+  groceryList   GroceryList  @relation(fields: [groceryListId], references: [id])
+  groceryListId String
+}
+
+model InventoryItem {
+  id              String         @id @default(cuid())
+  name            String
+  quantity        Int
+  unit            String?
+  price           Float?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  expiryDate      DateTime?
+  inventoryList   InventoryList  @relation(fields: [inventoryListId], references: [id])
+  inventoryListId String
+
+  @@unique([name, expiryDate])
 }
